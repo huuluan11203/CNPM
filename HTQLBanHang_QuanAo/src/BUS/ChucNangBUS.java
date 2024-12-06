@@ -56,7 +56,7 @@ public class ChucNangBUS {
         return chucNangDAO.getChucNangByQuyen(maquyen);
     }
 
-    public boolean addChucNangToQuyen(String tenChucNang, String tenQuyen) {
+    public boolean addNewChucNangToQuyen(String tenChucNang, String tenQuyen) {
         QuyenDAO quyenDAO = new QuyenDAO();
         String maQuyen = quyenDAO.getQuyenByTenQuyen(tenQuyen);
         if (maQuyen == null) {
@@ -64,7 +64,12 @@ public class ChucNangBUS {
         }
 
         String maChucNang = chucNangDAO.getNextMaChucNang();
-        return chucNangDAO.addChucNangToQuyen(maChucNang, tenChucNang, maQuyen);
+        return chucNangDAO.addNewChucNangToQuyen(maChucNang, tenChucNang, maQuyen);
+    }
+    
+    public boolean addExistChucNangToQuyen(String maChucNang, String maquyen) {
+
+        return chucNangDAO.addExistChucNangToQuyen(maChucNang, maquyen);
     }
 
     public String getNextId() {
@@ -79,5 +84,12 @@ public class ChucNangBUS {
         return chucNangDAO.getQuyenByChucNang(maChucNang);
     }
 
+    public boolean isChucNangAndQuyenExist(String macn, String maquyen){
+        return chucNangDAO.isChucNangAndQuyenExist(macn, maquyen);
+    }
+
+    public boolean deleteChucNangFromQuyen(String macn, String maquyen) {
+        return chucNangDAO.deleteChucNangFromQuyen(macn, maquyen);
+    }
 
 }

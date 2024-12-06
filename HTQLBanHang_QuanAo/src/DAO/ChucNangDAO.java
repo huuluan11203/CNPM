@@ -110,7 +110,7 @@ public class ChucNangDAO {
         return "CN001"; // Nếu bảng chưa có dữ liệu
     }
 
-    public boolean addChucNangToQuyen(String maChucNang, String tenChucNang, String maQuyen) {
+    public boolean addNewChucNangToQuyen(String maChucNang, String tenChucNang, String maQuyen) {
         String sqlInsertChucNang = "INSERT INTO chucnang (machucnang, tenchucnang) VALUES (?, ?)";
         String sqlInsertChucNangQuyen = "INSERT INTO chucnang_quyen (machucnang, maquyen) VALUES (?, ?)";
 
@@ -202,25 +202,67 @@ public class ChucNangDAO {
         return false;
     }
 
- 
-    public List<String> getQuyenByChucNang(String maChucNang) {
-    List<String> quyenList = new ArrayList<>();
-    String sql = "SELECT maquyen FROM chucnang_quyen WHERE machucnang = ?";
+     public List<String> getQuyenByChucNang(String maChucNang) {
+        List<String> quyenList = new ArrayList<>();
+        String sql = "SELECT maquyen FROM chucnang_quyen WHERE machucnang = ?";
 
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setString(1, maChucNang);
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            quyenList.add(rs.getString("maquyen"));
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maChucNang);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                quyenList.add(rs.getString("maquyen"));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ChucNangDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
-    } catch (SQLException ex) {
-        Logger.getLogger(ChucNangDAO.class.getName()).log(Level.SEVERE, null, ex);
+
+        return quyenList;
     }
 
-    return quyenList;
-}
+    public boolean isChucNangAndQuyenExist(String macn, String maquyen) {
+        String sql = "SELECT COUNT(*) FROM chucnang_quyen WHERE machucnang = ? AND maquyen = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, macn);
+            stmt.setString(2, maquyen);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                return true; // Nếu đã tồn tại
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false; // Nếu không tồn tại
+    }
 
-    
-    
-    
+     public boolean addExistChucNangToQuyen(String macn, String maquyen) {
+        // Nếu chưa có, thực hiện thêm mới
+        String sql = "INSERT INTO chucnang_quyen (machucnang, maquyen) VALUES (?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, macn);
+            stmt.setString(2, maquyen);
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                return true; // Thành công
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false; // Nếu có lỗi hoặc không thành công
+    }
+     
+      public boolean deleteChucNangFromQuyen(String macn, String maquyen) {
+        String sql = "DELETE FROM chucnang_quyen WHERE machucnang = ? AND maquyen = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, macn);
+            stmt.setString(2, maquyen);
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                return true; // Thành công
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false; // Nếu có lỗi hoặc không thành công
+    }
+
 }

@@ -15,43 +15,74 @@ import GUI.Panel.PhanQuyenPanel;
 import java.util.List;
 import javax.swing.*; 
 import java.awt.*;      
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.HashSet;
 import java.util.Set;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
 
-public class ChucNangDialog extends javax.swing.JDialog {
+public class ChucNangQuyenDialog extends javax.swing.JDialog {
 
 
     private JTable jTable;
-    private AccountsBUS accountsBUS;
     private QuyenBUS quyenBUS;
     private ChucNangBUS chucNangBUS;
     private String chucnang;
-    private String machucnang;
     
-    public ChucNangDialog( java.awt.Frame parent, boolean modal, String chucnang, String macn1) {
+    public ChucNangQuyenDialog() {
         initComponents();
         setLocationRelativeTo(null);
         this.chucnang = chucnang;
         quyenBUS = new QuyenBUS();
         chucNangBUS = new ChucNangBUS();
-        this.machucnang = macn1;
+        populateComboBox(chucnangcbx);
         loadQuyenToComboBox(quyencbx3);
-       
-        if (chucnang.equals("Sua")) {
-            quyencbx3.setVisible(false);
-            jLabel4.setVisible(false);
-            macn.setText(machucnang);
-        }else{
-             macn.setText(chucNangBUS.getNextId());
-        }
+        
         
         this.setVisible(true);
        
+    }
+    
+    private void handleButtonClick(JComboBox<String> comboBox1, JComboBox<String> comboBox2) {
+    // Lấy dữ liệu từ ComboBox
+    String selectedValue1 = (String) comboBox1.getSelectedItem();
+    String selectedValue2 = (String) comboBox2.getSelectedItem();
+
+        // Kiểm tra xem các ComboBox đã chọn dữ liệu hay chưa
+        if (selectedValue1 == null || selectedValue1.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Vui lòng chọn chức năng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (selectedValue2 == null || selectedValue2.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Vui lòng chọn quyền!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String[] parts = selectedValue1.split("-", 2);
+        String macn = parts[0].trim();
+        String maQuyen = quyenBUS.getMaQuyenByTenQuyen(selectedValue2);
+        if (chucNangBUS.isChucNangAndQuyenExist(macn, maQuyen)) {
+             JOptionPane.showMessageDialog(this, "Chức năng này đã có trong quyền này!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }else{
+            if (chucNangBUS.addExistChucNangToQuyen(macn, maQuyen)) {
+            JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            
+        } else {
+            JOptionPane.showMessageDialog(this, "Thêm thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+        }
+        
+
+    }
+
+
+    private void populateComboBox(JComboBox<String> comboBox) {
+        List<ChucNangDTO> chucNangs = chucNangBUS.getAll();
+        comboBox.removeAllItems(); // Xóa các mục cũ (nếu có)
+        for (ChucNangDTO chucNang : chucNangs) {
+            comboBox.addItem(chucNang.getMachucnang() + "-" + chucNang.getTenchucnang()); // Thêm chức năng vào ComboBox
+        }
     }
 
     private void loadQuyenToComboBox(JComboBox<String> comboBox) {
@@ -251,13 +282,10 @@ public class ChucNangDialog extends javax.swing.JDialog {
         jLabel1 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
-        tencn = new javax.swing.JTextField();
-        macn = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
         quyencbx3 = new javax.swing.JComboBox<>();
         jLabel4 = new javax.swing.JLabel();
-        jButton4 = new javax.swing.JButton();
+        chucnangcbx = new javax.swing.JComboBox<>();
+        jLabel5 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setBackground(new java.awt.Color(255, 255, 255));
@@ -268,7 +296,7 @@ public class ChucNangDialog extends javax.swing.JDialog {
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Chức Năng");
+        jLabel1.setText("Thêm Chức Năng Vào Quyền");
         jLabel1.setOpaque(true);
 
         jButton2.setBackground(new java.awt.Color(204, 51, 0));
@@ -295,23 +323,6 @@ public class ChucNangDialog extends javax.swing.JDialog {
             }
         });
 
-        tencn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tencnActionPerformed(evt);
-            }
-        });
-
-        macn.setEnabled(false);
-        macn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                macnActionPerformed(evt);
-            }
-        });
-
-        jLabel2.setText("Tên Chức Năng");
-
-        jLabel3.setText("Mã Chức Năng");
-
         quyencbx3.setMaximumRowCount(30);
         quyencbx3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -321,17 +332,14 @@ public class ChucNangDialog extends javax.swing.JDialog {
 
         jLabel4.setText("Quyền");
 
-        jButton4.setBackground(new java.awt.Color(0, 204, 102));
-        jButton4.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jButton4.setForeground(new java.awt.Color(255, 255, 255));
-        jButton4.setText("Thêm Chức Năng Vào Quyền");
-        jButton4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 102)));
-        jButton4.setOpaque(true);
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
+        chucnangcbx.setMaximumRowCount(30);
+        chucnangcbx.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
+                chucnangcbxActionPerformed(evt);
             }
         });
+
+        jLabel5.setText("Chức năng");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -339,27 +347,23 @@ public class ChucNangDialog extends javax.swing.JDialog {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(46, 46, 46)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(256, 256, 256)
+                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(47, 47, 47)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
-                            .addComponent(macn, javax.swing.GroupLayout.PREFERRED_SIZE, 317, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel3)
-                            .addComponent(tencn, javax.swing.GroupLayout.PREFERRED_SIZE, 317, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(42, 42, 42))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)))
-                .addGap(13, 13, 13)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jLabel4)
-                        .addComponent(quyencbx3, javax.swing.GroupLayout.PREFERRED_SIZE, 305, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel5)
+                            .addComponent(chucnangcbx, javax.swing.GroupLayout.PREFERRED_SIZE, 305, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(13, 13, 13)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel4)
+                            .addComponent(quyencbx3, javax.swing.GroupLayout.PREFERRED_SIZE, 305, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(44, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -368,22 +372,17 @@ public class ChucNangDialog extends javax.swing.JDialog {
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel4))
+                    .addComponent(jLabel4)
+                    .addComponent(jLabel5))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(macn, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(quyencbx3, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tencn, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
+                    .addComponent(quyencbx3, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(chucnangcbx, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 46, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(14, 14, 14))
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -405,33 +404,7 @@ public class ChucNangDialog extends javax.swing.JDialog {
    
     
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        if (chucnang.equals("Sua")) {
-            
-            
-            
-        }else {
-            String tenChucNang = tencn.getText().trim();
-            String selectedQuyen = (String) quyencbx3.getSelectedItem();
-
-            if (tenChucNang.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Tên chức năng không được để trống!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            if (selectedQuyen == null || selectedQuyen.equals("")) {
-                JOptionPane.showMessageDialog(this, "Vui lòng chọn quyền!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            boolean isSuccess = chucNangBUS.addNewChucNangToQuyen(tenChucNang, selectedQuyen);
-
-            if (isSuccess) {
-                JOptionPane.showMessageDialog(this, "Thêm chức năng thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-
-            } else {
-                JOptionPane.showMessageDialog(this, "Thêm chức năng thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        }
+           handleButtonClick(chucnangcbx, quyencbx3);
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
@@ -439,46 +412,28 @@ public class ChucNangDialog extends javax.swing.JDialog {
         dispose();
     }//GEN-LAST:event_jButton2ActionPerformed
 
-    private void tencnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tencnActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_tencnActionPerformed
-
-    private void macnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_macnActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_macnActionPerformed
-
     private void quyencbx3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_quyencbx3ActionPerformed
         String selectedQuyen = (String) quyencbx3.getSelectedItem(); // Lấy quyền từ JComboBox
        
 
     }//GEN-LAST:event_quyencbx3ActionPerformed
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        this.dispose();
-        ChucNangQuyenDialog chucNangQuyenDialog = new ChucNangQuyenDialog();
-            chucNangQuyenDialog.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosed(WindowEvent e) {
-                   
-                }
-            });
-    }//GEN-LAST:event_jButton4ActionPerformed
+    private void chucnangcbxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chucnangcbxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_chucnangcbxActionPerformed
 
     /**
      * @param args the command line arguments
      */
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox<String> chucnangcbx;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JTextField macn;
     private javax.swing.JComboBox<String> quyencbx3;
-    private javax.swing.JTextField tencn;
     // End of variables declaration//GEN-END:variables
 }

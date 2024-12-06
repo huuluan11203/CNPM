@@ -27,5 +27,5 @@ public class ChucNangDTO {
 
     public ChucNangDTO() {
     }
-    
+
 }

@@ -578,40 +578,60 @@ public class PhanQuyenPanel extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(this, "Vui lòng chọn chức năng!", "Thông báo", JOptionPane.WARNING_MESSAGE);
                 return;
             } else {
-                String macn = jTable1.getValueAt(selectedRow, 0).toString();
-                List<String> quyenList = chucNangBUS.getQuyenByChucNang(macn);
+                String tenquyen = (String) quyencbx.getSelectedItem();
+                if (tenquyen.equals("Tất cả")) {
+                    String macn = jTable1.getValueAt(selectedRow, 0).toString();
+                    List<String> quyenList = chucNangBUS.getQuyenByChucNang(macn);
 
-                if (quyenList.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Chức năng không liên kết với quyền nào!");
+                    if (quyenList.isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "Chức năng không liên kết với quyền nào!");
+                    } else {
+                        StringBuilder message = new StringBuilder("Chức năng được sử dụng bởi các quyền:\n");
+
+                        // Lặp qua danh sách quyền và thêm vào thông báo
+                        for (String maQuyen : quyenList) {
+
+                            message.append("- ").append(quyenBUS.getTenQuyen(maQuyen)).append("\n");
+                        }
+
+                        // Hiển thị hộp thoại xác nhận với danh sách quyền
+                        int result = JOptionPane.showConfirmDialog(null, message.toString() + "\nBạn có muốn tiếp tục?", "Thông báo", JOptionPane.YES_NO_OPTION);
+                        if (result == JOptionPane.YES_OPTION) {
+                            boolean isSucess = chucNangBUS.deleteChucNang(macn);
+                            if (isSucess) {
+                                JOptionPane.showMessageDialog(this, "Xóa chức năng thành công!", "Thông báo", JOptionPane.PLAIN_MESSAGE);
+
+                                // Cập nhật lại dữ liệu trên bảng
+                                DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+                                model.setRowCount(0); // Xóa dữ liệu cũ
+                                LoadChucNangToTable();
+                            } else {
+                                JOptionPane.showMessageDialog(this, "Xóa chức năng thất bại!", "Thông báo", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }
                 } else {
-                    StringBuilder message = new StringBuilder("Chức năng được sử dụng bởi các quyền:\n");
-
-                    // Lặp qua danh sách quyền và thêm vào thông báo
-                    for (String maQuyen : quyenList) {
-                        
-                        message.append("- ").append(quyenBUS.getTenQuyen(maQuyen)).append("\n");
-                    }
-
-                    // Hiển thị hộp thoại xác nhận với danh sách quyền
-                    int result = JOptionPane.showConfirmDialog(null, message.toString() + "\nBạn có muốn tiếp tục?", "Thông báo", JOptionPane.YES_NO_OPTION);
+                    String macn = jTable1.getValueAt(selectedRow, 0).toString();
+                    String tencn = jTable1.getValueAt(selectedRow, 1).toString();
+                    int result = JOptionPane.showConfirmDialog(null, "Xóa chức năng: \n - "+tencn+"\nTrong quyền "+tenquyen + "\nBạn có muốn tiếp tục?", "Thông báo", JOptionPane.YES_NO_OPTION);
                     if (result == JOptionPane.YES_OPTION) {
-                        boolean isSucess = chucNangBUS.deleteChucNang(macn);
-                        if (isSucess) {
-                             JOptionPane.showMessageDialog(this, "Xóa chức năng thành công!", "Thông báo", JOptionPane.PLAIN_MESSAGE);
+                            String maquyen = quyenBUS.getMaQuyenByTenQuyen(tenquyen);
+                            boolean isSucess = chucNangBUS.deleteChucNangFromQuyen(macn, maquyen);
+                            if (isSucess) {
+                                JOptionPane.showMessageDialog(this, "Xóa chức năng thành công!", "Thông báo", JOptionPane.PLAIN_MESSAGE);
 
-                            // Cập nhật lại dữ liệu trên bảng
-                            DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-                            model.setRowCount(0); // Xóa dữ liệu cũ
-                            LoadChucNangToTable();
-                        }else {
-                        JOptionPane.showMessageDialog(this, "Xóa chức năng thất bại!", "Thông báo", JOptionPane.ERROR_MESSAGE);
-                    }
-                    } 
+                                // Cập nhật lại dữ liệu trên bảng
+                                DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+                                model.setRowCount(0); // Xóa dữ liệu cũ
+                                LoadChucNangToTable();
+                            } else {
+                                JOptionPane.showMessageDialog(this, "Xóa chức năng thất bại!", "Thông báo", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
                 }
 
             }
-            
-            
+
         }
 
     }//GEN-LAST:event_jButton8ActionPerformed
@@ -748,7 +768,7 @@ public class PhanQuyenPanel extends javax.swing.JPanel {
                 @Override
                 public void windowClosed(WindowEvent e) {
                     loadQuyenToTable();
-                    loadQuyenToComboBox(quyencbx);// Gọi hàm cập nhật dữ liệu
+                    // Gọi hàm cập nhật dữ liệu
                 }
             });
             quyenDialog.setVisible(true);
@@ -757,7 +777,8 @@ public class PhanQuyenPanel extends javax.swing.JPanel {
             chucNangDialog.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosed(WindowEvent e) {
-                    LoadChucNangToTable(); // Gọi hàm cập nhật dữ liệu
+                    LoadChucNangToTable();
+                    loadQuyenToComboBox(quyencbx); // Gọi hàm cập nhật dữ liệu
                 }
             });
             chucNangDialog.setVisible(true);

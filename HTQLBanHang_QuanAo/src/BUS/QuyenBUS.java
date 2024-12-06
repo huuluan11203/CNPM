@@ -49,28 +49,27 @@ public class QuyenBUS {
     }
 
     public boolean updateQuyen(QuyenDTO quyen) {
-    // Kiểm tra dữ liệu đầu vào
-    if (quyen == null) {
-        System.out.println("Dữ liệu quyền không hợp lệ!");
-        return false;
+        // Kiểm tra dữ liệu đầu vào
+        if (quyen == null) {
+            System.out.println("Dữ liệu quyền không hợp lệ!");
+            return false;
+        }
+        if (quyen.getMaquyen() == null || quyen.getMaquyen().trim().isEmpty()) {
+            System.out.println("Mã quyền không được để trống!");
+            return false;
+        }
+        if (quyen.getTenquyen() == null || quyen.getTenquyen().trim().isEmpty()) {
+            System.out.println("Tên quyền không được để trống!");
+            return false;
+        }
+
+        // Gọi DAO để thực hiện sửa
+        return quyenDAO.updateQuyen(quyen);
     }
-    if (quyen.getMaquyen() == null || quyen.getMaquyen().trim().isEmpty()) {
-        System.out.println("Mã quyền không được để trống!");
-        return false;
-    }
-    if (quyen.getTenquyen() == null || quyen.getTenquyen().trim().isEmpty()) {
-        System.out.println("Tên quyền không được để trống!");
-        return false;
+
+    public String getMaQuyenByTenQuyen(String tenQuyen) {
+        return quyenDAO.getQuyenByTenQuyen(tenQuyen);
     }
 
-    // Gọi DAO để thực hiện sửa
-    return quyenDAO.updateQuyen(quyen);
-}
 
-public String getMaQuyenByTenQuyen(String tenQuyen) {
-    return quyenDAO.getQuyenByTenQuyen(tenQuyen);
-}
-
-
-    
 }
